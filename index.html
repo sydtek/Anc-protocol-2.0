@@ -1,0 +1,220 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>PHC ANC Register</title>
+<style>
+:root{--bg:#f4f6f8;--cd:#fff;--tx:#1b2430;--mu:#667085;--bd:#d9dee5;--pr:#0b7a75;--rd:#c62828;--rb:#fdeaea;--am:#9a5b00;--ab:#fff1d6;--bl:#1a56b0;--bb:#e5eefc;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#11161c;--cd:#1b222b;--tx:#e8edf3;--mu:#9aa6b4;--bd:#2f3a47;--pr:#3cc3bb;--rd:#ff7b7b;--rb:#3a1d1f;--am:#ffc266;--ab:#3a2c12;--bl:#8ab4ff;--bb:#17233a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#11161c;--cd:#1b222b;--tx:#e8edf3;--mu:#9aa6b4;--bd:#2f3a47;--pr:#3cc3bb;--rd:#ff7b7b;--rb:#3a1d1f;--am:#ffc266;--ab:#3a2c12;--bl:#8ab4ff;--bb:#17233a;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+[hidden]{display:none!important}
+header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--pr);color:#fff;padding:10px 14px;display:flex;gap:10px;align-items:center;z-index:5}
+header b{flex:1}header button{background:#fff2;color:#fff;border:0;padding:6px 10px;border-radius:8px}
+main{max-width:900px;margin:0 auto;padding:12px}
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.t{background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:12px;cursor:pointer;text-align:left;color:var(--tx);font:inherit}
+.t b{font-size:26px;display:block;color:var(--pr)}.t.r b{color:var(--rd)}
+.cd{background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:12px;margin:10px 0}
+h2{margin:6px 0;font-size:18px}h3{margin:12px 0 6px;font-size:15px;color:var(--pr)}.mu{color:var(--mu);font-size:13px}
+label{display:block;font-size:13px;color:var(--mu);margin-top:8px}
+input,select,textarea{width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+input[type=checkbox],input[type=radio]{width:auto}
+.ck{display:flex;gap:6px;align-items:center;color:var(--tx);font-size:14px}
+.f{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0 10px}
+button.b{background:var(--pr);color:#fff;border:0;padding:9px 14px;border-radius:8px;font:inherit;margin:4px 4px 4px 0}button.s{background:var(--bd);color:var(--tx)}
+.a{padding:8px 10px;border-radius:8px;margin:5px 0;border-left:5px solid;font-size:14px}
+.a.c{background:var(--rb);border-color:var(--rd);color:var(--rd);font-weight:600}.a.w{background:var(--ab);border-color:var(--am);color:var(--am)}.a.f{background:var(--bb);border-color:var(--bl);color:var(--bl)}
+.row{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:10px;margin:6px 0;cursor:pointer}
+.bd{display:inline-block;font-size:12px;padding:1px 7px;border-radius:9px;margin-left:4px;background:var(--bd)}.bd.hr{background:var(--rb);color:var(--rd);font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{border-bottom:1px solid var(--bd);padding:5px;text-align:left}.red{color:var(--rd);font-weight:700}
+.sc{overflow-x:auto}svg{max-width:100%;height:auto}textarea{min-height:110px;font:12px monospace}
+#pr{display:none}#md{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:20}.mb{background:var(--cd);color:var(--tx);padding:18px;border-radius:12px;max-width:320px;margin:12px}@media print{header,.np{display:none!important}body,#app{background:#fff!important;color:#000!important}}
+</style></head><body>
+<header><b>🤰 PHC ANC Register</b><button onclick="go('dash')">Home</button><button onclick="go('reg')">+ New</button></header>
+<main id="app"></main><div id="pr"></div><div id="md" hidden></div>
+<script>
+const K='anc_phc_v1';let DB={pts:[],log:[]},S={};
+function load(){try{DB=JSON.parse(localStorage.getItem(K))||DB}catch(e){}}
+function save(){try{localStorage.setItem(K,JSON.stringify(DB))}catch(e){al('Could not save in browser. Please copy a backup from Tools.')}}
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const D=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const T=(()=>{const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate())})();
+const add=(d,n)=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);
+const fs=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const fd=s=>{if(!s)return'—';const d=s instanceof Date?s:D(s);return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})};
+const num=v=>v===''||v==null?null:+v;
+function ask(m,fn,ok){$('#md').innerHTML='<div class="mb"><p>'+m+'</p><button class="b" id="y">'+(ok?'OK':'Yes')+'</button>'+(ok?'':'<button class="b s" id="n">Cancel</button>')+'</div>';$('#md').hidden=false;$('#y').onclick=()=>{$('#md').hidden=true;fn&&fn()};if(!ok)$('#n').onclick=()=>{$('#md').hidden=true}}
+const al=m=>ask(m,null,true);
+const vs=p=>(p.visits||[]).slice().sort((a,b)=>a.date<b.date?-1:1);
+function edd(p){if(!p.lmp)return{};const l=D(p.lmp),le=add(l,280);let e=le,src='LMP';
+ if(p.usgEdd&&p.usgDate){const g=(D(p.usgDate)-l)/864e5,df=Math.abs(D(p.usgEdd)-le)/864e5;if(df>(g<98?7:10)){e=D(p.usgEdd);src='USG'}}
+ return{e,le,src}}
+function ga(p,dt=T){const x=edd(p);if(!x.e)return null;const d=280-Math.round((x.e-dt)/864e5);return{d,w:Math.floor(d/7),r:d%7}}
+const gs=g=>g?g.w+'w '+g.r+'d':'—';
+function readings(p){const r=[{date:p.regDate,sys:num(p.sys),dia:num(p.dia),wt:num(p.weight),hb:num(p.i_hb_v),reg:1}];
+ vs(p).forEach(v=>r.push({date:v.date,sys:num(v.sys),dia:num(v.dia),wt:num(v.wt),hb:num(v.hb),ua:v.ua,v}));return r.filter(x=>x.date)}
+function risks(p){const R=[],r=readings(p),L=r[r.length-1]||{},a=num(p.age),h=num(p.height),wt=num(p.weight);
+ if(a&&a<18)R.push('Teenage pregnancy');if(a&&a>=35)R.push('Elderly pregnancy (≥35)');if(h&&h<145)R.push('Short stature');if(wt&&wt<40)R.push('Weight <40 kg');
+ if(p.gravida>=5)R.push('Higher order birth');
+ for(const k in PREV)if(p[k]&&p.gravida>1)R.push(PREV[k]);
+ for(const k in MED)if(p[k])R.push(MED[k]);
+ if(L.hb&&L.hb<11)R.push('Anaemia (Hb '+L.hb+')');if(L.sys>=140||L.dia>=90)R.push('Raised BP');
+ vs(p).forEach(v=>{if(v.newRisk)R.push('New: '+v.newRisk);if(num(v.o1)>=140||num(v.o2)>=140||num(v.o3)>=140)R.push('GDM (OGCT ≥140)')});
+ if(p.manualHR)R.push('Marked high risk by MO');return[...new Set(R)]}
+const isHR=p=>risks(p).length>0;
+function alerts(p){const A=[],r=readings(p),L=r[r.length-1]||{},Pv=r[r.length-2],g=ga(p),w=g?g.w:0,vv=vs(p);
+ const c=t=>A.push({l:'c',t}),wn=t=>A.push({l:'w',t}),f=t=>A.push({l:'f',t});
+ if(L.sys>=160||L.dia>=110)c('Severe-range BP '+L.sys+'/'+L.dia+' – immediate assessment, refer to CEmONC');
+ else if(L.sys>=140||L.dia>=90)c('BP '+L.sys+'/'+L.dia+' ≥140/90 – possible PIH/pre-eclampsia: repeat after 30 min, assess, consider Tab Labetalol and referral');
+ else if(L.sys>120||L.dia>80)wn('BP '+L.sys+'/'+L.dia+' above 120/80 – repeat after 30 min (protocol)');
+ if(Pv&&Pv.sys&&L.sys&&(L.sys-Pv.sys>=20||L.dia-Pv.dia>=15))wn('BP rising since previous visit ('+Pv.sys+'/'+Pv.dia+' → '+L.sys+'/'+L.dia+')');
+ if(Pv&&Pv.wt&&L.wt&&L.wt<Pv.wt)wn('Weight dropped since previous visit ('+Pv.wt+' → '+L.wt+' kg)');
+ if(L.hb&&L.hb<7)c('Hb '+L.hb+' <7 – refer to CEmONC/MCH');
+ else if(L.hb&&L.hb<9)wn('Hb '+L.hb+' – moderate anaemia. '+(w>=30&&w<=34?'NO IV iron at 30–34 wks; oral therapeutic iron':w>34?'Refer for transfusion if Hb <9 (after 34 wks)':'IV iron sucrose at PHC per protocol'));
+ else if(L.hb&&L.hb<11)wn('Hb '+L.hb+' – therapeutic oral iron (2 IFA/day)');
+ if(L.ua&&/\+\+|\+\+\+/.test(L.ua))(L.sys>=140?c:wn)('Urine albumin '+L.ua);
+ const lv=vv[vv.length-1];
+ if(lv){if(/headache|visual|blur|epigastr|fits|convuls|bleed|reduced.*movement|leaking|breathless/i.test(lv.sym||''))c('Danger symptom: '+lv.sym);
+  ['o1','o2','o3'].forEach((k,i)=>{if(num(lv[k])>=140)wn('OGCT '+(i+1)+' = '+lv[k]+' ≥140 – GDM: meal plan, PPBG after 15 days')});
+  if(lv.usgRes==='abn')wn('Abnormal USG: '+(lv.usgTxt||'')+(lv.usgRef?' – referred to '+lv.usgRef:' – no referral noted'));
+  if(lv.ref)f('Referred to '+lv.refH+' ('+lv.refW+') on '+fd(lv.date)+' – confirm outcome');
+  if(lv.ecg==='abn'||lv.echo==='abn')wn('Abnormal ECG/ECHO recorded')}
+ if(!p.td1)f('Inj TD 1st dose not recorded');else if(!p.td2&&T>=add(D(p.td1),28))f('Inj TD 2nd dose due (since '+fd(add(D(p.td1),28))+')');
+ if(!p.delivered){if(p.next&&D(p.next)<T)f('Follow-up overdue – was due '+fd(p.next));
+  [[14,20],[21,28],[32,36],[37,40]].forEach(([a,b])=>{if(w>b&&!r.some(x=>{const q=ga(p,D(x.date));return q&&q.w>=a&&q.w<=b}))f('NHM window missed: '+a+'–'+b+' wks')})}
+ return A}
+function nextDef(p,date){const g=ga(p,D(date)),w=g?g.w:0,hr=isHR(p);const d=hr?14:w<28?28:w<36?14:7;return fs(add(D(date),d))}
+const MED={htn:'Chronic hypertension',dm:'Diabetes mellitus',thy:'Thyroid disease',epi:'Epilepsy',card:'Cardiac disease',tb:'Tuberculosis / asthma',renal:'Renal disease',trans:'Previous blood transfusion',allergy:'Drug allergy'};
+const PREV={boh:'Bad obstetric history',lscs:'Previous LSCS',instr:'Instrumental delivery',pih:'Previous PIH / pre-eclampsia',gdmP:'Previous GDM',anP:'Severe anaemia',pph:'Postpartum haemorrhage',previa:'Placenta previa / abruptio',art:'Infertility treatment / ART',multP:'Multiple pregnancy in past'};
+const FAM={fdm:'Diabetes',fhtn:'Hypertension',fmult:'Multiple pregnancy',fcong:'Congenital anomalies'};
+const INV={hb:'Hb %',cbc:'CBC',grp:'Blood group & Rh',urine:'Urine albumin / sugar',uroutine:'Urine routine',vdrl:'VDRL',hiv:'HIV (ICTC counselling)',hbsag:'HBsAg',smear:'Peripheral smear (MP/MF)',hplc:'Hemoglobinopathy (HPLC)'};
+const TXT=['name','age','phone','mrd','lmp','usgDate','usgEdd','gravida','para','living','abort','prevWt','spacing','menarche','marYrs','consang','cyc','cycDays','perDays','irrNote','diet','tobacco','ses','height','weight','sys','dia','pulse','temp','cvs','rs','partRbs','partSero','fhr','birthH','picme','surg'];
+const EX={pallor:'Pallor',icterus:'Icterus',edema:'Pedal edema',lymph:'Lymphadenopathy',thyroidE:'Thyroid enlargement'};
+const CHK=[...Object.keys(MED),...Object.keys(PREV),...Object.keys(FAM),...Object.keys(EX),'manualHR'];
+const F=(id,l,t='text',v='',x='')=>`<div><label>${l}</label><input id="${id}" type="${t}" value="${v??''}" ${x}></div>`;
+const SEL=(id,l,o,v)=>`<div><label>${l}</label><select id="${id}">${o.map(x=>`<option ${x==v?'selected':''}>${x}</option>`).join('')}</select></div>`;
+const CK=(k,l,p)=>`<div><label class="ck"><input type="checkbox" id="${k}" ${p[k]?'checked':''} onchange="$('#${k}_d').hidden=!this.checked"> ${l}</label><input id="${k}_d" placeholder="Details" value="${p[k+'_d']||''}" ${p[k]?'':'hidden'}></div>`;
+function go(v,id){S.v=v;S.id=id;render();scrollTo(0,0)}
+function render(){load();({dash,reg:regF,search,pt,visit:visitF,slip:slipV,edd:eddV,m3:m3V,hr:()=>lst('High-risk mothers',DB.pts.filter(p=>!p.delivered&&isHR(p))),missed:()=>lst('Missed follow-ups',DB.pts.filter(p=>!p.delivered&&alerts(p).some(a=>/overdue|window missed/.test(a.t)))),td:()=>lst('Inj TD due',DB.pts.filter(p=>!p.delivered&&alerts(p).some(a=>/TD/.test(a.t)))),tools}[S.v||'dash'])()}
+function badges(p){const a=alerts(p),c=a.filter(x=>x.l=='c').length;return(isHR(p)?'<span class="bd hr">HIGH RISK</span>':'')+(c?`<span class="bd hr">${c} critical</span>`:'')+(p.delivered?'<span class="bd">Delivered</span>':'')}
+function row(p){const x=edd(p);return`<div class="row" onclick="go('pt',${p.id})"><b>${p.name}</b> ${badges(p)}<div class="mu">MRD ${p.mrd||'—'} · ${p.phone||''} · ${p.age||''}y · GA ${gs(ga(p))} · EDD ${fd(x.e)}</div></div>`}
+function lst(t,a){$('#app').innerHTML=`<h2>${t} (${a.length})</h2>`+(a.map(row).join('')||'<p class="mu">None 🎉</p>')}
+function dash(){const A=DB.pts.filter(p=>!p.delivered),m=(p,o)=>{const e=edd(p).e;if(!e)return false;const k=(e.getFullYear()-T.getFullYear())*12+e.getMonth()-T.getMonth();return o?k>=1&&k<=3:k==0};
+ const miss=A.filter(p=>alerts(p).some(a=>/overdue|window missed/.test(a.t))).length,td=A.filter(p=>alerts(p).some(a=>/TD/.test(a.t))).length,hr=A.filter(isHR).length;
+ const crit=A.flatMap(p=>alerts(p).filter(a=>a.l=='c').map(a=>({p,a})));
+ const tl=(n,l,v,c='')=>`<button class="t ${c}" onclick="go('${v}')"><b>${n}</b>${l}</button>`;
+ $('#app').innerHTML=`<div class="g">${tl(A.filter(p=>m(p)).length,'EDD this month','edd')}${tl(A.filter(p=>m(p,1)).length,'EDD next 3 months','m3')}${tl('+','New registration','reg')}${tl('🔍','Search old patient','search')}${tl(miss,'Missed follow-ups','missed','r')}${tl(td,'Inj TD due','td')}${tl(hr,'High-risk list','hr','r')}${tl('⚙','Tools / backup','tools')}</div>
+ <h2>Critical alerts</h2>${crit.map(({p,a})=>`<div class="a c" onclick="go('pt',${p.id})" style="cursor:pointer">${p.name} (${p.mrd||''}): ${a.t}</div>`).join('')||'<p class="mu">No critical alerts.</p>'}
+ <p class="mu">Total registered: ${DB.pts.length}. Alerts support, not replace, clinical judgement – verify against the current approved protocol.</p>`}
+function search(){$('#app').innerHTML=`<h2>Search old patient</h2><input id="q" placeholder="Name, MRD number or mobile" oninput="sr()" autofocus><div id="res"></div>`;sr()}
+function sr(){const q=($('#q').value||'').toLowerCase().trim();$('#res').innerHTML=DB.pts.filter(p=>!q||[p.name,p.mrd,p.phone].some(x=>(x||'').toLowerCase().includes(q))).map(row).join('')||'<p class="mu">No match</p>'}
+function eddV(){const m=S.m||fs(T).slice(0,7);$('#app').innerHTML=`<h2>EDD by month</h2><input type="month" id="mm" value="${m}" onchange="S.m=this.value;eddV()">`+
+ eddRows(DB.pts.filter(p=>{const e=edd(p).e;return e&&fs(e).slice(0,7)==m}))}
+function m3V(){let h='<h2>EDD – next 3 months</h2>';for(let i=1;i<=3;i++){const d=new Date(T.getFullYear(),T.getMonth()+i,1),k=fs(d).slice(0,7);h+=`<h3>${d.toLocaleString('en-GB',{month:'long',year:'numeric'})}</h3>`+eddRows(DB.pts.filter(p=>{const e=edd(p).e;return e&&fs(e).slice(0,7)==k}))}$('#app').innerHTML=h}
+function eddRows(a){return a.sort((x,y)=>edd(x).e-edd(y).e).map(p=>`<div class="row" onclick="go('pt',${p.id})"><b>${p.name}</b> ${badges(p)}<div class="mu">EDD ${fd(edd(p).e)} · Delivery at: ${p.birthH||'not decided'} · MRD ${p.mrd||''}</div>${p.delivered?`<div class="mu">✔ ${fd(p.delivered.date)} · ${p.delivered.mode} · baby ${p.delivered.wt||'?'} kg · ${p.delivered.place}</div>`:''}</div>`).join('')||'<p class="mu">None</p>'}
+function regF(){const p=S.id?DB.pts.find(x=>x.id==S.id):{};const o=t=>`<div class="cd"><h3>${t}</h3>`;
+ const prim=(p.gravida||1)==1;
+ $('#app').innerHTML=`<h2>${S.id?'Edit':'New'} registration</h2>${o('Identification')}<div class="f">${F('name','Name','text',p.name)}${F('age','Age','number',p.age)}${F('phone','Mobile number','tel',p.phone)}${F('mrd','MRD / OP number','text',p.mrd)}${F('picme','PICME 2.0 ID','text',p.picme)}</div></div>
+ ${o('Obstetric history')}<div class="f">${SEL('gravida','Gravida (1 = primi)',[1,2,3,4,5,6,7,8],p.gravida||1).replace('<select','<select onchange="$(\'#multi\').hidden=this.value==1"')}</div>
+ <div id="multi" ${prim?'hidden':''}><div class="f">${F('para','Para','number',p.para)}${F('living','Living children','number',p.living)}${F('abort','Abortions / stillbirths / neonatal deaths','text',p.abort)}${F('prevWt','Previous baby birth wt (kg)','text',p.prevWt)}${F('spacing','Spacing between pregnancies','text',p.spacing)}</div>${Object.keys(PREV).map(k=>CK(k,PREV[k],p)).join('')}</div></div>
+ ${o('Menstrual & marital history')}<div class="f">${F('menarche','Age at menarche','number',p.menarche)}${F('marYrs','Married since (yrs/months)','text',p.marYrs)}${SEL('consang','Marriage',['Non-consanguineous','Consanguineous'],p.consang)}${SEL('cyc','Cycle',['Regular','Irregular'],p.cyc)}${F('cycDays','Cycle length (days)','number',p.cycDays)}${F('perDays','Period duration (days)','number',p.perDays)}${F('irrNote','If irregular: periods once in ? months','text',p.irrNote)}${F('lmp','LMP (exact date)','date',p.lmp,'onchange="eddPrev()"')}${F('usgDate','USG date','date',p.usgDate,'onchange="eddPrev()"')}${F('usgEdd','USG EDD','date',p.usgEdd,'onchange="eddPrev()"')}</div><div id="ep" class="a f"></div></div>
+ ${o('Medical history')}${Object.keys(MED).map(k=>CK(k,MED[k],p)).join('')}${F('surg','Previous abdominal surgeries','text',p.surg)}</div>
+ ${o('Family & personal history')}${Object.keys(FAM).map(k=>CK(k,FAM[k],p)).join('')}<div class="f">${SEL('diet','Diet',['Veg','Non-veg'],p.diet)}${SEL('tobacco','Tobacco / alcohol',['None','Tobacco','Alcohol','Both'],p.tobacco)}${SEL('ses','Socioeconomic status',['Low','Middle','High'],p.ses)}</div></div>
+ ${o('Examination')}<div class="f">${F('height','Height (cm)','number',p.height,'oninput="bmi()"')}${F('weight','Weight (kg)','number',p.weight,'oninput="bmi()"')}<div><label>BMI</label><div id="bmi" style="padding:8px">—</div></div>${F('sys','BP systolic','number',p.sys)}${F('dia','BP diastolic','number',p.dia)}${F('pulse','Pulse','number',p.pulse)}${F('temp','Temp (if fever)','text',p.temp)}${F('cvs','CVS','text',p.cvs)}${F('rs','Respiratory system','text',p.rs)}${F('fhr','Fetal heart rate','text',p.fhr)}</div>${Object.keys(EX).map(k=>`<label class="ck"><input type="checkbox" id="${k}" ${p[k]?'checked':''}> ${EX[k]}</label>`).join('')}</div>
+ ${o('Baseline investigations (tick if done, enter value)')}${Object.keys(INV).map(k=>`<div class="f"><label class="ck"><input type="checkbox" id="i_${k}" ${p['i_'+k]?'checked':''}> ${INV[k]}</label><input id="i_${k}_v" placeholder="Value / result" value="${p['i_'+k+'_v']||''}"></div>`).join('')}<div class="f">${F('partRbs','Partner RBS','text',p.partRbs)}${F('partSero','Partner serology','text',p.partSero)}</div></div>
+ ${o('Birth plan & risk')}${F('birthH','Planned delivery hospital (editable later)','text',p.birthH)}<label class="ck"><input type="checkbox" id="manualHR" ${p.manualHR?'checked':''}> Mark as high risk (clinical judgement)</label></div>
+ <button class="b" onclick="saveReg()">Save</button><button class="b s" onclick="go('dash')">Cancel</button>`;eddPrev();bmi()}
+function bmi(){const h=+$('#height').value,w=+$('#weight').value,e=$('#bmi');if(!e)return;if(!h||!w){e.textContent='—';return}const b=w/((h/100)**2),c=b<18.5?'Underweight':b<25?'Normal':b<30?'Overweight':'Obese';e.innerHTML='<b class="'+(b<18.5||b>=30?'red':'')+'">'+b.toFixed(1)+'</b> ('+c+')'}
+function eddPrev(){const p={lmp:$('#lmp').value,usgDate:$('#usgDate').value,usgEdd:$('#usgEdd').value},x=edd(p);$('#ep').innerHTML=x.e?`LMP EDD ${fd(x.le)} · Using <b>${x.src}</b> EDD ${fd(x.e)} · GA today ${gs(ga(p))}`:'Enter LMP to calculate EDD'}
+const KEY=['name','phone','mrd','lmp','usgEdd','usgDate','birthH'];
+function saveReg(){const p=S.id?DB.pts.find(x=>x.id==S.id):{id:Date.now(),regDate:fs(T),visits:[]},old=JSON.parse(JSON.stringify(p));
+ if(!$('#name').value||!$('#lmp').value)return al('Name and LMP are required');
+ TXT.forEach(k=>p[k]=$('#'+k).value);Object.keys(INV).forEach(k=>{p['i_'+k]=$('#i_'+k).checked;p['i_'+k+'_v']=$('#i_'+k+'_v').value});
+ CHK.forEach(k=>{p[k]=$('#'+k).checked;if($('#'+k+'_d'))p[k+'_d']=$('#'+k+'_d').value});
+ if(p.gravida==1)Object.keys(PREV).forEach(k=>p[k]=false);
+ if(!S.id){p.next=nextDef(p,p.regDate);DB.pts.push(p)}
+ KEY.forEach(k=>{if(S.id&&old[k]!=p[k])DB.log.push({t:new Date().toISOString(),id:p.id,m:`${p.name}: ${k} "${old[k]||''}" → "${p[k]||''}"`})});
+ if(!S.id)DB.log.push({t:new Date().toISOString(),id:p.id,m:'Registered '+p.name});save();go('pt',p.id)}
+function lc(t,Sr,o={}){const W=330,H=180,m=32;let X=[],Y=[];Sr.forEach(s=>s.p.forEach(q=>{X.push(q.x);Y.push(q.y)}));
+ if(!X.length)return`<div class="cd"><b>${t}</b><p class="mu">No data yet</p></div>`;(o.ref||[]).forEach(r=>Y.push(r.y));
+ let x0=Math.min(...X),x1=Math.max(...X);if(x1==x0)x1=x0+1;let y0=Math.min(...Y)-3,y1=Math.max(...Y)+3;
+ const sx=x=>m+(x-x0)/(x1-x0)*(W-m-10),sy=y=>H-m-(y-y0)/(y1-y0)*(H-m-14);
+ let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${t}"><line x1="${m}" y1="${H-m}" x2="${W-10}" y2="${H-m}" stroke="var(--bd)"/><line x1="${m}" y1="10" x2="${m}" y2="${H-m}" stroke="var(--bd)"/><text x="2" y="${sy(y0)}" font-size="10" fill="var(--mu)">${Math.round(y0)}</text><text x="2" y="${sy(y1)+8}" font-size="10" fill="var(--mu)">${Math.round(y1)}</text><text x="${m}" y="${H-8}" font-size="10" fill="var(--mu)">${o.xl||'wk'} ${x0}</text><text x="${W-50}" y="${H-8}" font-size="10" fill="var(--mu)">${o.xl||'wk'} ${x1}</text>`;
+ (o.ref||[]).forEach(r=>s+=`<line x1="${m}" x2="${W-10}" y1="${sy(r.y)}" y2="${sy(r.y)}" stroke="var(--rd)" stroke-dasharray="4 3"/><text x="${W-62}" y="${sy(r.y)-2}" font-size="9" fill="var(--rd)">${r.l}</text>`);
+ Sr.forEach(z=>{s+=`<polyline fill="none" stroke="${z.c}" stroke-width="2" ${z.d?'stroke-dasharray="5 4" opacity=".7" ':''}points="${z.p.map(q=>sx(q.x)+','+sy(q.y)).join(' ')}"/>`;(z.d?[]:z.p).forEach(q=>s+=`<circle cx="${sx(q.x)}" cy="${sy(q.y)}" r="4" fill="${q.bad?'var(--rd)':z.c}"><title>${z.n}: ${q.y}</title></circle>`)});
+ return`<div class="cd"><b>${t}</b> <span class="mu">${Sr.map(z=>`<span style="color:${z.c}">● ${z.n}</span>`).join(' ')}</span>${s}</svg></div>`}
+function charts(p){const r=readings(p).map(x=>({...x,x:(ga(p,D(x.date))||{w:0}).w})),vv=vs(p);
+ const P=(k,bad)=>r.filter(x=>x[k]).map(x=>({x:x.x,y:x[k],bad:bad&&bad(x)}));
+ let ex=[];const wp=P('wt');if(wp.length){const f=wp[0],h=num(p.height),b0=h&&num(p.weight)?num(p.weight)/((h/100)**2):22,[lo,hi]=b0<18.5?[.44,.58]:b0<25?[.35,.5]:b0<30?[.23,.33]:[.17,.27],ge=ga(p),end=Math.max(wp[wp.length-1].x,Math.min(ge?ge.w:0,42),f.x+1),pt2=k=>[{x:f.x,y:f.y},{x:end,y:+(f.y+k*(end-f.x)).toFixed(1)}];ex=[{n:'Expected min',c:'#888',d:1,p:pt2(lo)},{n:'Expected max',c:'#888',d:1,p:pt2(hi)}]}
+ const og=[];vv.forEach(v=>['o1','o2','o3'].forEach((k,i)=>{if(num(v[k]))og.push({x:i+1,y:+v[k],bad:+v[k]>=140})}));
+ return`<div class="g" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">${lc('Weight (kg) – dashed = expected gain',[{n:'Wt',c:'var(--pr)',p:P('wt')},...ex])}${lc('Blood pressure',[{n:'Systolic',c:'#d97706',p:P('sys',x=>x.sys>120)},{n:'Diastolic',c:'#1a56b0',p:P('dia',x=>x.dia>80)}],{ref:[{y:140,l:'140'},{y:90,l:'90'}]})}${lc('Hb (g/dl)',[{n:'Hb',c:'#7c3aed',p:P('hb',x=>x.hb<11)}],{ref:[{y:11,l:'11'}]})}${lc('OGCT values',[{n:'OGCT',c:'#0b7a75',p:og}],{xl:'test',ref:[{y:140,l:'140'}]})}</div>`}
+function advice(w){const A=[];const t=(...a)=>A.push(...a);
+ if(w<12)t('Confirm pregnancy (UPT/USG), early registration in PICME 2.0, full history & baseline investigations','Inj TD 1st dose; Tab Folic acid 400 mcg daily till 12 wks','Known high risk → start treatment immediately');
+ if(w>=12&&w<=16)t('OGCT 1st screening (75 g glucose, 2 h) at 12–16 wks; &lt;140 normal');
+ if(w>=14&&w<=20)t('II trimester visit 1: start IFA, Calcium + Vit D3 (1 h gap from iron), multivitamin/B12, Vit C','Inj TD 2nd dose (4 wks after 1st); Albendazole 400 mg single dose','Dating scan for corrected EDD','Previous PIH → Tab Labetalol + Aspirin; hypothyroid → TFT, Eltroxin');
+ if(w>=18&&w<=22)t('Anomaly scan + ECHO at MCH/HQGH');
+ if(w>=18&&w<=24)t('Check mid-trimester fall in BP (~10%); no fall → risk of PIH');
+ if(w>=21&&w<=28)t('Weekly/fortnightly visit for anaemia correction: Hb, weight, BP, urine albumin','Hb 7.1–8.9 → IV iron sucrose 100 mg ×4 doses at PHC (not after 30 wks)','Birth planning & cross-notification of delivery hospital');
+ if(w>=24&&w<=28)t('OGCT 2nd screening; growth scan');
+ if(w>=28&&w<34)t('III trimester visit 1: roll-over test, fundal height, FHR 120–160','Fetal kick count counselling','NO IV infusion during 30–34 wks');
+ if(w>=32&&w<=36)t('OGCT 3rd screening (32–34 wks); growth/presentation USG','Hb &lt;9 → refer for transfusion (only after 34 wks)','Educate on danger signs, 108, VHN/SHN, 104');
+ if(w>=37)t('Weekly visit at delivery hospital; fundal height, FHR, Hb, urine albumin','High-risk mothers: admit at CEmONC 1 week before EDD','Delivery signs, family planning motivation');
+ return A}
+function pt(){const p=DB.pts.find(x=>x.id==S.id);if(!p)return go('dash');const x=edd(p),g=ga(p),A=alerts(p),R=risks(p),vv=vs(p),lv=vv[vv.length-1];
+ const hist=Object.keys(MED).filter(k=>p[k]).map(k=>MED[k]+(p[k+'_d']?' ('+p[k+'_d']+')':'')).join(', ');
+ $('#app').innerHTML=`<div class="cd"><h2>${p.name} ${badges(p)}</h2><div>${p.age||''} y · MRD ${p.mrd||'—'} · 📞 ${p.phone||'—'} · G${p.gravida}${p.para?'P'+p.para:''}</div>
+ <div>LMP ${fd(p.lmp)} · <b>GA today ${gs(g)}</b> · EDD ${fd(x.e)} (${x.src}${x.src=='LMP'&&p.usgEdd?'; USG EDD '+fd(p.usgEdd)+' within allowed difference':''})</div>
+ <div class="mu">Delivery plan: ${p.birthH||'not decided'} · TD1 ${fd(p.td1)} · TD2 ${fd(p.td2)} · Next visit ${fd(p.next)}</div>${hist?`<div class="mu">Medical: ${hist}</div>`:''}
+ <button class="b" onclick="go('visit',${p.id})">+ Follow-up visit</button><button class="b s" onclick="go('reg',${p.id})">Edit</button><button class="b s" onclick="slip(${p.id})">Print slip / summary</button><button class="b s" onclick="$('#dl').hidden=!$('#dl').hidden">${p.delivered?'Delivery details':'Mark delivered'}</button></div>
+ ${A.sort((a,b)=>a.l<b.l?-1:1).map(a=>`<div class="a ${a.l}">${{c:'CRITICAL',w:'WARNING',f:'FOLLOW-UP'}[a.l]}: ${a.t}</div>`).join('')}
+ ${R.length?`<div class="a w">Risk factors: ${R.join(' · ')}</div>`:''}
+ ${lv&&lv.usgRes==='abn'?`<div class="a c">Earlier scan abnormal: ${lv.usgTxt} – referred to ${lv.usgRef||'?'}. Follow up the outcome.</div>`:''}
+ <div id="dl" class="cd" hidden><h3>Delivery</h3><div class="f">${F('dd','Date','date',p.delivered?.date||fs(T))}${SEL('dm','Method',['Normal','LSCS','Instrumental'],p.delivered?.mode)}${F('dp','Place of delivery','text',p.delivered?.place||p.birthH)}${SEL('ds','Baby',['Live male','Live female','Stillbirth'],p.delivered?.sex)}${F('dw','Baby weight (kg)','text',p.delivered?.wt)}${F('dn','Notes','text',p.delivered?.n)}</div><button class="b" onclick="deliv(${p.id})">Save delivery</button></div>
+ <div class="cd"><h3>Advice for ${gs(g)} (NHM/DPH&amp;PM)</h3><ul>${g?advice(g.w).map(a=>`<li>${a}</li>`).join(''):''}</ul><p class="mu">Prompts only – verify with current approved protocol.</p></div>
+ ${charts(p)}
+ <div class="cd sc"><h3>Visits</h3><table><tr><th>Date</th><th>GA</th><th>BP</th><th>Wt</th><th>Hb</th><th>Alb/Sug</th><th>Symptoms / notes</th><th></th></tr>${vv.slice().reverse().map(v=>`<tr><td>${fd(v.date)}</td><td>${gs(ga(p,D(v.date)))}</td><td class="${v.sys>120||v.dia>80?'red':''}">${v.sys||''}/${v.dia||''}</td><td>${v.wt||''}</td><td class="${v.hb&&v.hb<11?'red':''}">${v.hb||''}</td><td>${v.ua||''}/${v.su||''}</td><td>${v.sym||''}${v.ref?` <b class="red">Referred: ${v.refH} – ${v.refW}</b>`:''}${v.usgDone=='Done'?' USG '+(v.usgRes=='abn'?'<b class="red">ABN: '+v.usgTxt+'</b>':'normal'):''}${v.ecg&&v.ecg!='Not done'?' ECG '+v.ecg:''}${v.echo&&v.echo!='Not done'?' ECHO '+v.echo:''}</td><td><a href="#" onclick="delV(${p.id},'${v.id}');return false">✕</a></td></tr>`).join('')||'<tr><td colspan="8" class="mu">No visits yet</td></tr>'}</table></div>
+ <div class="cd"><h3>Audit log</h3>${DB.log.filter(l=>l.id==p.id).reverse().map(l=>`<div class="mu">${new Date(l.t).toLocaleString('en-GB')} – ${l.m}</div>`).join('')||'<span class="mu">No entries</span>'}</div>`}
+function visitF(){S.v='visit';const p=DB.pts.find(x=>x.id==S.id),l=vs(p).pop()||{};const R=(n,a)=>a.map(([v,t])=>`<label class="ck"><input type="radio" name="${n}" value="${v}" ${(l[n+'_']||'')==v?'checked':''}> ${t}</label>`).join('');
+ $('#app').innerHTML=`<h2>Follow-up – ${p.name}</h2><div class="mu">GA on selected date shown below · ${(isHR(p)?'HIGH RISK':'')}</div><div class="cd"><div class="f">${F('vdate','Visit date','date',fs(T),'onchange="vga()"')}</div><div id="vg" class="a f"></div>
+ <div class="f">${F('sys','BP systolic','number')}${F('dia','BP diastolic','number')}${F('wt','Weight (kg)','number')}${F('hb','Hb (g/dl)','number','','step="0.1"')}${SEL('ua','Urine albumin',['-','Trace','+','++','+++'])}${SEL('su','Urine sugar',['-','±','+','++'])}${F('pulse','Pulse','number')}${F('fh','Fundal ht / FHR','text')}</div>
+ <label>Symptoms during this session</label><textarea id="sym" style="min-height:60px;font:inherit"></textarea>
+ <label class="ck"><input type="checkbox" id="ref" onchange="$('#rf').hidden=!this.checked"> Referred</label><div id="rf" class="f" hidden>${F('refH','Referred to which hospital')}${F('refW','Reason for referral')}</div></div>
+ <div class="cd"><h3>Scans &amp; tests</h3><div class="f">${SEL('usgDone','USG',['Not done','Done'])}<div><label>USG result</label>${R('usgRes',[['normal','Normal'],['abn','Abnormal']])}</div></div><div class="f">${F('usgTxt','If abnormal: what is abnormal')}${F('usgRef','Referred to (for abnormal USG)')}</div>
+ <div class="f">${SEL('ecg','ECG',['Not done','Normal','Abnormal'])}${SEL('echo','ECHO',['Not done','Normal','Abnormal'])}${F('o1','OGCT 1 (mg/dl)','number')}${F('o2','OGCT 2','number')}${F('o3','OGCT 3','number')}${F('td1','Inj TD 1st dose date','date',p.td1)}${F('td2','Inj TD 2nd dose date','date',p.td2)}</div></div>
+ <div class="cd"><h3>Plan</h3>${F('birthH','Delivery hospital (editable)','text',p.birthH)}${F('newRisk','New risk factor found today (risk reassessment)')}<label class="ck"><input type="checkbox" id="manualHR" ${p.manualHR?'checked':''}> Mark high risk</label>${F('next','Next follow-up date (blank = auto per NHM/risk)','date')}</div>
+ <button class="b" onclick="saveV(${p.id})">Save visit</button><button class="b s" onclick="go('pt',${p.id})">Cancel</button>`;
+ $('#usgRes') ;vga()}
+function vga(){const p=DB.pts.find(x=>x.id==S.id);$('#vg').textContent='GA on this date: '+gs(ga(p,D($('#vdate').value)))}
+function saveV(id){const p=DB.pts.find(x=>x.id==id),v={id:'v'+Date.now(),date:$('#vdate').value,ref:$('#ref').checked};
+ ['sys','dia','wt','hb','ua','su','pulse','fh','sym','refH','refW','usgDone','usgTxt','usgRef','ecg','echo','o1','o2','o3','newRisk'].forEach(k=>v[k]=$('#'+k).value);
+ v.usgRes=(document.querySelector('input[name=usgRes]:checked')||{}).value||'';
+ if(!v.date)return al('Enter date');if(v.ref&&!v.refH)return al('Enter hospital referred to');
+ p.visits.push(v);p.td1=$('#td1').value;p.td2=$('#td2').value;p.birthH=$('#birthH').value;p.manualHR=$('#manualHR').checked;
+ p.next=$('#next').value||nextDef(p,v.date);DB.log.push({t:new Date().toISOString(),id:p.id,m:'Visit added '+v.date+' BP '+v.sys+'/'+v.dia+(v.ref?' REFERRED to '+v.refH:'')});save();go('pt',id)}
+function delV(id,vid){ask('Delete this visit permanently? This will be noted in the audit log.',()=>{const p=DB.pts.find(x=>x.id==id);p.visits=p.visits.filter(v=>v.id!=vid);DB.log.push({t:new Date().toISOString(),id,m:'Visit deleted '+vid});save();pt()})}
+function deliv(id){const p=DB.pts.find(x=>x.id==id);p.delivered={date:$('#dd').value,mode:$('#dm').value,place:$('#dp').value,sex:$('#ds').value,wt:$('#dw').value,n:$('#dn').value};DB.log.push({t:new Date().toISOString(),id,m:'Marked delivered '+p.delivered.date+' '+p.delivered.mode});save();pt()}
+function slip(id){go('slip',id)}
+function slipV(){const p=DB.pts.find(x=>x.id==S.id),l=vs(p).pop()||{},x=edd(p);
+ $('#app').innerHTML=`<div class="np"><button class="b" onclick="prt()">🖨 Print</button><button class="b s" onclick="go('pt',${p.id})">Back</button><div class="mu">If Print does nothing here, open the page link in a normal browser tab and print from there.</div></div><h2>CEmONC Referral Slip / ANC Summary</h2><p><b>${p.name}</b>, ${p.age} y · MRD ${p.mrd} · Ph ${p.phone}<br>G${p.gravida}P${p.para||0} · LMP ${fd(p.lmp)} · EDD ${fd(x.e)} (${x.src}) · GA ${gs(ga(p))}</p><p>Referred to: ${l.refH||'__________'}<br>Reason: ${l.refW||'__________'}</p><p>Risk factors: ${risks(p).join(', ')||'None'}<br>Medical: ${Object.keys(MED).filter(k=>p[k]).map(k=>MED[k]).join(', ')||'None'}</p>
+ <table><tr><th>Date</th><th>GA</th><th>BP</th><th>Wt</th><th>Hb</th><th>Alb</th><th>Sym</th></tr>${vs(p).map(v=>`<tr><td>${fd(v.date)}</td><td>${gs(ga(p,D(v.date)))}</td><td>${v.sys}/${v.dia}</td><td>${v.wt}</td><td>${v.hb}</td><td>${v.ua}</td><td>${v.sym||''}</td></tr>`).join('')}</table><p>TD1 ${fd(p.td1)} · TD2 ${fd(p.td2)}<br>PICME ${p.picme||''}</p><p>MO signature: ______________ Date: ${fd(T)}</p>`;
+ }
+function prt(){try{print()}catch(e){al('Printing is blocked here. Open the link in a normal browser tab and print.')}}
+function csv(){const H=['MRD','Name','Age','Phone','LMP','EDD','GA','Gravida','High risk','Last visit','Last BP','Last Hb','Next visit','TD1','TD2','Delivered','Mode','Baby wt','PICME'];
+ const rows=DB.pts.map(p=>{const l=vs(p).pop()||{};return[p.mrd,p.name,p.age,p.phone,p.lmp,fs(edd(p).e||T),gs(ga(p)),p.gravida,isHR(p)?'Y':'N',l.date,l.sys?l.sys+'/'+l.dia:'',l.hb,p.next,p.td1,p.td2,p.delivered?.date,p.delivered?.mode,p.delivered?.wt,p.picme].map(c=>'"'+String(c??'').replace(/"/g,'""')+'"').join(',')});
+ $('#out').value=[H.join(','),...rows].join('\n');$('#out').select()}
+function tools(){$('#app').innerHTML=`<h2>Tools</h2><div class="cd"><h3>Backup / restore / register export</h3><p class="mu">Records live only in this browser. Copy a backup regularly and keep it safe. Clearing browser data erases records.</p><button class="b" onclick="$('#out').value=JSON.stringify(DB);$('#out').select();try{document.execCommand('copy')}catch(e){}">Backup (JSON)</button><button class="b" onclick="csv()">Monthly register (CSV)</button><button class="b s" onclick="restore()">Restore from box</button><textarea id="out" placeholder="Backup text appears here. To restore, paste a backup here and tap Restore."></textarea></div>
+ <div class="cd"><h3>Iron sucrose helper</h3><div class="f">${F('cHb','Hb (g/dl)','number','','step="0.1"')}${F('cW','Gestation (weeks)','number')}</div><button class="b" onclick="iron()">Check</button><div id="ir"></div></div>
+ <div class="cd"><h3>GDM insulin helper (PPBG)</h3><div class="f">${F('gP','2-h PPBG (mg/dl)','number')}${F('gD','Current insulin dose (IU, 0 if none)','number','0')}</div><button class="b" onclick="gdm()">Check</button><div id="gr"></div></div>
+ <div class="cd"><h3>Sample data</h3><button class="b" onclick="sample()">Load sample patients</button><button class="b s" onclick="ask('Delete ALL records?',()=>{DB={pts:[],log:[]};save();go('dash')})">Clear all data</button></div>`}
+function restore(){try{const d=JSON.parse($('#out').value);if(!d.pts)throw 0;ask('Replace all current data with this backup?',()=>{DB=d;save();go('dash')})}catch(e){al('Not a valid backup')}}
+function iron(){const h=+$('#cHb').value,w=+$('#cW').value;let t;
+ if(h<7)t='Hb &lt;7: refer to CEmONC/MCH for transfusion.';else if(h<9)t=w>=30?(w<=34?'No IV iron at 30–34 wks. Oral therapeutic iron.':'Third trimester: refer to higher centre with referral slip (108).'):'Moderate anaemia (7.1–8.9): Iron sucrose 100 mg (5 ml) in 100 ml NS over 20–30 min, once daily ×4 doses at 2–4 day intervals, same-day start at PHC. Recheck Hb after 4 weeks; if still 7.1–8.9, two top-up doses.';
+ if(h>=9)t=h<11?'Therapeutic oral iron: 60 mg elemental iron BD + folic acid 0.5 mg + B12 + Vit C.':'Preventive oral iron: 60 mg elemental iron OD + folic acid + B12 + Vit C.';$('#ir').innerHTML='<div class="a w">'+t+' Verify with protocol.</div>'}
+function gdm(){const g=+$('#gP').value,d=+$('#gD').value;let t;
+ if(g<120)t='PPBG &lt;120: continue meal plan / current dose; repeat every 15 days.';else if(!d)t='PPBG ≥120 despite meal plan: start insulin 4–6 units SC mid-thigh; recheck in 15 days (target PPBG 110–120).';
+ else{const n=d+3;t=`PPBG >120: add 2–4 units (suggest ${d+2}–${d+4} IU). `+(d+4>20?'Dose exceeds 20 IU: refer to Physician/Diabetologist at CEmONC/MCH.':d+2>16?'Above 16 IU: split ⅔ morning before breakfast, ⅓ at night.':'')}
+ $('#gr').innerHTML='<div class="a w">'+t+' Verify with protocol.</div>'}
+function sample(){const mk=(i,n,age,mrd,ph,wks,g,x)=>({id:Date.now()+i,regDate:fs(add(T,-wks*7+70)),visits:[],name:n,age,mrd,phone:ph,lmp:fs(add(T,-wks*7)),gravida:g,para:g-1,height:155,weight:55,sys:110,dia:70,birthH:'',...x});
+ const a=mk(1,'Sample: Lakshmi',22,'MRD1001','9000000001',20,1,{next:fs(add(T,-10))}),b=mk(2,'Sample: Meena',31,'MRD1002','9000000002',34,3,{pih:true,lscs:true,birthH:'Govt Medical College',td1:fs(add(T,-150)),td2:fs(add(T,-120)),next:fs(add(T,5))}),c=mk(3,'Sample: Revathi',26,'MRD1003','9000000003',8,2,{next:fs(add(T,7))});
+ b.visits=[{id:'s1',date:fs(add(T,-60)),sys:112,dia:72,wt:58,hb:10.2,ua:'-',su:'-',sym:''},{id:'s2',date:fs(add(T,-28)),sys:126,dia:82,wt:61,hb:9.4,ua:'+',su:'-',sym:'',o1:'132'},{id:'s3',date:fs(add(T,-5)),sys:146,dia:94,wt:64,hb:8.8,ua:'++',su:'-',sym:'Headache',o2:'152',ref:true,refH:'Govt Medical College',refW:'Raised BP',usgDone:'Done',usgRes:'abn',usgTxt:'Low liquor',usgRef:'MCH'}];
+ a.visits=[{id:'s4',date:fs(add(T,-30)),sys:108,dia:68,wt:53,hb:11.5,ua:'-',su:'-',sym:''}];DB.pts.push(a,b,c);save();go('dash')}
+load();render();
+</script></body></html>
